@@ -1,7 +1,8 @@
 {
   "name": "Tabungan Sasesta",
   "short_name": "Sasesta",
-  "start_url": "index.html",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#1e1e2f",
   "theme_color": "#4caf50",
