@@ -5,10 +5,11 @@
   <title>Tabungan Sasesta</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="manifest.json" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
-      max-width: 400px;
+      max-width: 500px;
       margin: auto;
       padding: 20px;
       background: #1e1e2f;
@@ -24,6 +25,7 @@
       font-size: 16px;
       border: none;
       border-radius: 5px;
+      box-sizing: border-box;
     }
     input {
       background: #2e2e3e;
@@ -43,45 +45,107 @@
       background-color: #e91e63;
       color: white;
     }
+    button.export {
+      background-color: #2196f3;
+      color: white;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #555;
+      text-align: center;
+    }
+    th {
+      background: #333;
+    }
   </style>
 </head>
 <body>
   <h1>Tabungan Sasesta</h1>
-  <input type="text" id="jumlah" placeholder="Masukkan nominal tabungan" />
+
+  <input type="date" id="tanggal" />
+  <input type="number" id="jumlah" placeholder="Masukkan nominal tabungan" />
   <button class="nabung" onclick="tambahTabungan()">Bank Sasesta</button>
   <button class="reset" onclick="resetTabungan()">Reset</button>
+  <button class="export" onclick="exportPDF()">Export ke PDF</button>
+
   <div class="total">Total Tabungan: Rp <span id="total">0</span></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Tanggal</th>
+        <th>Jumlah</th>
+      </tr>
+    </thead>
+    <tbody id="riwayat"></tbody>
+  </table>
+
   <script>
-    let total = parseInt(localStorage.getItem("tabungan")) || 0;
-    document.getElementById("total").innerText = total.toLocaleString("id-ID");
+    let data = JSON.parse(localStorage.getItem("tabunganRiwayat")) || [];
+
+    function render() {
+      const tbody = document.getElementById("riwayat");
+      const totalElem = document.getElementById("total");
+      tbody.innerHTML = "";
+
+      let total = 0;
+      data.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = \`
+          <td>\${item.tanggal}</td>
+          <td>Rp \${parseInt(item.jumlah).toLocaleString("id-ID")}</td>
+        \`;
+        tbody.appendChild(row);
+        total += parseInt(item.jumlah);
+      });
+
+      totalElem.innerText = total.toLocaleString("id-ID");
+    }
 
     function tambahTabungan() {
-      let input = document.getElementById("jumlah").value;
-      input = input.replace(/[.,]/g, "");
-      let nominal = parseInt(input);
-      if (isNaN(nominal) || nominal <= 0) {
-        alert("Masukkan nominal yang benar!");
+      const tanggal = document.getElementById("tanggal").value;
+      const jumlah = document.getElementById("jumlah").value;
+
+      if (!tanggal || !jumlah || jumlah <= 0) {
+        alert("Isi tanggal dan jumlah dengan benar.");
         return;
       }
-      total += nominal;
-      localStorage.setItem("tabungan", total);
-      document.getElementById("total").innerText = total.toLocaleString("id-ID");
+
+      data.push({ tanggal, jumlah });
+      localStorage.setItem("tabunganRiwayat", JSON.stringify(data));
+
+      document.getElementById("tanggal").value = "";
       document.getElementById("jumlah").value = "";
+
+      render();
     }
 
     function resetTabungan() {
-      if (confirm("Apakah kamu yakin ingin mereset tabungan?")) {
-        total = 0;
-        localStorage.setItem("tabungan", total);
-        document.getElementById("total").innerText = total.toLocaleString("id-ID");
+      if (confirm("Yakin ingin mereset semua data tabungan?")) {
+        data = [];
+        localStorage.removeItem("tabunganRiwayat");
+        render();
       }
     }
 
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js');
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Riwayat Tabungan Sasesta", 10, 10);
+      let y = 20;
+      data.forEach(item => {
+        doc.text(\`\${item.tanggal} - Rp \${parseInt(item.jumlah).toLocaleString("id-ID")}\`, 10, y);
+        y += 10;
       });
+      doc.save("tabungan_sasesta.pdf");
     }
+
+    render();
   </script>
 </body>
 </html>
