@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tabungan Sasesta</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 400px;
+      margin: auto;
+      padding: 20px;
+      background: #1e1e2f;
+      color: #ffffff;
+    }
+    h1 {
+      text-align: center;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+    }
+    input {
+      background: #2e2e3e;
+      color: white;
+    }
+    .total {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 20px;
+      text-align: center;
+    }
+    button.nabung {
+      background-color: #4caf50;
+      color: white;
+    }
+    button.reset {
+      background-color: #e91e63;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tabungan Sasesta</h1>
+  <input type="text" id="jumlah" placeholder="Masukkan nominal tabungan" />
+  <button class="nabung" onclick="tambahTabungan()">Bank Sasesta</button>
+  <button class="reset" onclick="resetTabungan()">Reset</button>
+  <div class="total">Total Tabungan: Rp <span id="total">0</span></div>
+  <script>
+    let total = parseInt(localStorage.getItem("tabungan")) || 0;
+    document.getElementById("total").innerText = total.toLocaleString("id-ID");
+
+    function tambahTabungan() {
+      let input = document.getElementById("jumlah").value;
+      input = input.replace(/[.,]/g, "");
+      let nominal = parseInt(input);
+      if (isNaN(nominal) || nominal <= 0) {
+        alert("Masukkan nominal yang benar!");
+        return;
+      }
+      total += nominal;
+      localStorage.setItem("tabungan", total);
+      document.getElementById("total").innerText = total.toLocaleString("id-ID");
+      document.getElementById("jumlah").value = "";
+    }
+
+    function resetTabungan() {
+      if (confirm("Apakah kamu yakin ingin mereset tabungan?")) {
+        total = 0;
+        localStorage.setItem("tabungan", total);
+        document.getElementById("total").innerText = total.toLocaleString("id-ID");
+      }
+    }
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js');
+      });
+    }
+  </script>
+</body>
+</html>
