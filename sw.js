@@ -6,8 +6,8 @@ self.addEventListener('install', function(event) {
         './index.html',
         './manifest.json',
         './sw.js',
-        './icons/icon-192.png',
-        './icons/icon-512.png',
+        './ikon/icon-192.png',
+        './ikon/icon-512.png',
         'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
       ]);
     })
