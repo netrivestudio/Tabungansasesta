@@ -6,7 +6,63 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="manifest" href="manifest.json" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 500px;
+      margin: auto;
+      padding: 20px;
+      background: #1e1e2f;
+      color: #ffffff;
+    }
+    h1 {
+      text-align: center;
+    }
+    input, button {
+      width: 100%;
+      padding: 10px;
+      margin-top: 10px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+    input {
+      background: #2e2e3e;
+      color: white;
+    }
+    .total {
+      font-size: 24px;
+      font-weight: bold;
+      margin-top: 20px;
+      text-align: center;
+    }
+    button.nabung {
+      background-color: #4caf50;
+      color: white;
+    }
+    button.reset {
+      background-color: #e91e63;
+      color: white;
+    }
+    button.export {
+      background-color: #2196f3;
+      color: white;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      border: 1px solid #555;
+      text-align: center;
+    }
+    th {
+      background: #333;
+    }
+  </style>
 </head>
 <body>
   <h1>Tabungan Sasesta</h1>
@@ -29,6 +85,69 @@
     <tbody id="riwayat"></tbody>
   </table>
 
-  <script src="script.js"></script>
+  <script>
+    let data = JSON.parse(localStorage.getItem("tabunganRiwayat")) || [];
+
+    function render() {
+      const tbody = document.getElementById("riwayat");
+      const totalElem = document.getElementById("total");
+      tbody.innerHTML = "";
+
+      let total = 0;
+      data.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${item.tanggal}</td>
+          <td>Rp ${parseInt(item.jumlah).toLocaleString("id-ID")}</td>
+        `;
+        tbody.appendChild(row);
+        total += parseInt(item.jumlah);
+      });
+
+      totalElem.innerText = total.toLocaleString("id-ID");
+    }
+
+    function tambahTabungan() {
+      const tanggal = document.getElementById("tanggal").value;
+      const jumlah = document.getElementById("jumlah").value;
+
+      if (!tanggal || !jumlah || jumlah <= 0) {
+        alert("Isi tanggal dan jumlah dengan benar.");
+        return;
+      }
+
+      data.push({ tanggal, jumlah });
+      localStorage.setItem("tabunganRiwayat", JSON.stringify(data));
+
+      document.getElementById("tanggal").value = "";
+      document.getElementById("jumlah").value = "";
+
+      render();
+    }
+
+    function resetTabungan() {
+      if (confirm("Yakin ingin mereset semua data tabungan?")) {
+        data = [];
+        localStorage.removeItem("tabunganRiwayat");
+        render();
+      }
+    }
+
+    function exportPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Riwayat Tabungan Sasesta", 10, 10);
+
+      let y = 20;
+      data.forEach(item => {
+        doc.text(`${item.tanggal} - Rp ${parseInt(item.jumlah).toLocaleString("id-ID")}`, 10, y);
+        y += 10;
+      });
+
+      doc.save("tabungan_sasesta.pdf");
+    }
+
+    render();
+  </script>
 </body>
 </html>
